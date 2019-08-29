@@ -26,7 +26,7 @@
             s.regressionSettings.dashStyle = s.regressionSettings.dashStyle || 'solid';
             s.regressionSettings.decimalPlaces = s.regressionSettings.decimalPlaces || 2;
             s.regressionSettings.useAllSeries = s.regressionSettings.useAllSeries || false;
-
+            
             var regressionType = s.regressionSettings.type || "linear";
             var regression;
             var extraSerie = {
@@ -34,17 +34,19 @@
                 color: s.regressionSettings.color || '',
                 yAxis: s.yAxis,
                 lineWidth: s.regressionSettings.lineWidth || 2,
-                marker: {enabled: false},
+                marker: {
+                    enabled: (typeof s.regressionSettings.marker == "undefined") ? false : s.regressionSettings.marker.enabled,
+    		        symbol: (typeof s.regressionSettings.marker == "undefined") ? undefined : s.regressionSettings.marker.symbol,
+    		        radius: (typeof s.regressionSettings.marker == "undefined") ? 4 : s.regressionSettings.marker.radius,
+                },
                 isRegressionLine: true,
                 visible: s.regressionSettings.visible,
                 type: s.regressionSettings.linetype || 'spline',
-                name: s.regressionSettings.name || "Equation: %eq",
+                name: s.regressionSettings.name || "No name",
                 id: s.regressionSettings.id,
                 dashStyle: s.regressionSettings.dashStyle || 'solid',
                 showInLegend: !s.regressionSettings.hideInLegend,
-                tooltip: {
-                    valueSuffix: s.regressionSettings.tooltip.valueSuffix || ' '
-                }
+                tooltip: s.regressionSettings.tooltip
             };
 
             if (typeof s.regressionSettings.index !== 'undefined') {
@@ -72,9 +74,17 @@
                 regression = _exponential(mergedData, extrapolate);
             }
             else if (regressionType == "polynomial") {
-                var order = s.regressionSettings.order || 2;
-                var extrapolate = s.regressionSettings.extrapolate || 0;
-                regression = _polynomial(mergedData, order, extrapolate);
+                const MAX_POLYNOMIAL_ORDER = 6, POLYNOMIAL_ORDER_SCALER = 1.2;
+
+                if (mergedData.length == 0) {
+                    regression = {"equation": [], points: [], string: ""};
+                }
+                else {
+                    //Equation for the polynomial order
+                    var order = s.regressionSettings.order || Math.min(Math.floor(Math.log(POLYNOMIAL_ORDER_SCALER * mergedData.length)) + 1, MAX_POLYNOMIAL_ORDER);
+                    var extrapolate = s.regressionSettings.extrapolate || 0;
+                    regression = _polynomial(mergedData, order, extrapolate);
+                }
             } else if (regressionType == "power") {
                 var extrapolate = s.regressionSettings.extrapolate || 0;
                 regression = _power(mergedData, extrapolate);
@@ -96,10 +106,9 @@
             extraSerie.data = regression.points;
             extraSerie.name = extraSerie.name.replace("%r2", regression.rSquared);
             extraSerie.name = extraSerie.name.replace("%r", regression.rValue);
-            extraSerie.name = extraSerie.name.replace("%eq", regression.string);
             extraSerie.name = extraSerie.name.replace("%se", regression.standardError);
 
-            if (extraSerie.visible === false) {
+            if (extraSerie.visible === false || regression.string.includes('NaN')) {
                 extraSerie.visible = false;
             }
             extraSerie.regressionOutputs = regression;
@@ -109,21 +118,22 @@
     }
 
     H.wrap(H.Chart.prototype, 'init', function (proceed) {
-        var series = arguments[1].series;
+        var series = (typeof arguments[1].series != "undefined") ? arguments[1].series : undefined;
         var extraSeries = [];
-        var i = 0;
         if (series) {
-            for (i = 0; i < series.length; i++) {
+            for (var i = 0; i < series.length; i++) {
                 var s = series[i];
                 if (s.regression) {
                     var extraSerie = processSerie(s, 'init', this);
-                    extraSeries.push(extraSerie);
                     arguments[1].series[i].rendered = true;
+                    if (extraSerie) {
+                        extraSeries.push(extraSerie);
+                    }
                 }
             }
         }
 
-        if (extraSerie) {
+        if (series && extraSeries.length > 0) {
             arguments[1].series = series.concat(extraSeries);
         }
 
@@ -154,7 +164,7 @@
                 data[n][0] = data[n].x;
                 data[n][1] = data[n].y;
             }
-            if (data[n][1] != null) {
+            if (data[n][1] != null && data[n][1] > 0) {
                 sum[0] += data[n][0]; // X
                 sum[1] += data[n][1]; // Y
                 sum[2] += data[n][0] * data[n][0] * data[n][1]; // XXY
@@ -277,7 +287,7 @@
                 data[n][0] = data[n].x;
                 data[n][1] = data[n].y;
             }
-            if (data[n][1] != null) {
+            if (data[n][1] != null && data[n][0] > 0) {
                 sum[0] += Math.log(data[n][0]);
                 sum[1] += data[n][1] * Math.log(data[n][0]);
                 sum[2] += data[n][1];
@@ -292,9 +302,13 @@
         var step = data[data.length - 1][0] - data[data.length - 2][0];
 
         for (var i = 0, len = resultLength; i < len; i++) {
-            var answer = 0;
             if(typeof data[i] !== 'undefined') {
-                var x = data[i][0];
+                if (data[i][0] <= 0) {
+                    continue;
+                }
+                else {
+                    var x = data[i][0];
+                }
             } else {
                 var x = data[data.length - 1][0] + (i - data.length) * step;
             }
@@ -329,7 +343,7 @@
                 data[n][0] = data[n].x;
                 data[n][1] = data[n].y;
             }
-            if (data[n][1] != null) {
+            if (data[n][1] != null && data[n][0] > 0) {
                 sum[0] += Math.log(data[n][0]);
                 sum[1] += Math.log(data[n][1]) * Math.log(data[n][0]);
                 sum[2] += Math.log(data[n][1]);
@@ -377,6 +391,27 @@
         if (typeof order == 'undefined') {
             order = 2;
         }
+        else if (order < 0) {
+            return {equation: [], points: data, string: "Error! Polynomial order smaller than 0!"};
+        }
+
+        if (data.length == 1) {
+            return {equation: [data[0][1]], points: data, string: data[0][1].toString()};
+        }
+
+        var xAxisCopy = new Array();
+
+        //Normalize input data
+        const SCALING_RANGE = 10;
+        var max = data.reduce((max, point) => point[0] > max ? point[0] : max , data[0][0]);
+        var min = data.reduce((min, point) => point[0] < min ? point[0] : min , data[0][0]);
+        var ratio = SCALING_RANGE / (max - min);
+
+        for (var i = 0; i < data.length; i++) {
+            xAxisCopy.push(data[i][0]);
+            data[i][0] = (data[i][0] - min) * ratio;
+        }
+
         var lhs = [], rhs = [], results = [], a = 0, b = 0, i = 0, k = order + 1;
 
         for (; i < k; i++) {
@@ -424,6 +459,20 @@
             results.push([x, answer]);
         }
 
+        var string = 'y = ';
+
+        for (var i = equation.length - 1; i >= 0; i--) {
+            if (i > 1) string += Math.round(equation[i] * 100) / 100 + 'x^' + i + ' + ';
+            else if (i == 1) string += Math.round(equation[i] * 100) / 100 + 'x' + ' + ';
+            else string += Math.round(equation[i] * 100) / 100;
+        }
+
+        //return the old x-axis values back
+        for (var i = 0; i < results.length; i++) {
+            results[i][0] = xAxisCopy[i];
+            data[i][0] = xAxisCopy[i];
+        }
+        
         results.sort(function (a, b) {
             if (a[0] > b[0]) {
                 return 1;
@@ -434,13 +483,8 @@
             return 0;
         });
 
-        var string = 'y = ';
-
-        for (var i = equation.length - 1; i >= 0; i--) {
-            if (i > 1) string += Math.round(equation[i] * 100) / 100 + 'x^' + i + ' + ';
-            else if (i == 1) string += Math.round(equation[i] * 100) / 100 + 'x' + ' + ';
-            else string += Math.round(equation[i] * 100) / 100;
-        }
+        //WARNING! Results are correct but now the final equation is wrong because it is calculated on the normalized data and then translated back.
+        //True equation can be calculated but it is unnecessary cumputation in our case and in most cases you would get really, really small coefficients.
 
         return {equation: equation, points: results, string: string};
     }
