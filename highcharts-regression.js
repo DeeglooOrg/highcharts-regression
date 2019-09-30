@@ -191,10 +191,9 @@
     // console.log("============ Highcharts setData series ============");
     if (this.options.regressionOutputs) {
       const regLineId = this.options.id
-      const regSerie = this.chart.series.find(serie => serie.options.regressionSettings && serie.options.regressionSettings.id === regLineId)
-      console.log(regSerie)
-      const a = processSerie(regSerie.options, 'none', this);
-      arguments[1] = a.data
+      const parentSerie = this.chart.series.find(serie => serie.options.regressionSettings && serie.options.regressionSettings.id === regLineId)
+      const regressionSerie = processSerie(parentSerie.options, 'none', this);
+      arguments[1] = regressionSerie.data
     }
     return proceed.apply(this, Array.prototype.slice.call(arguments, 1));
   });
