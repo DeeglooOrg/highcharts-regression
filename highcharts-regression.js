@@ -151,49 +151,42 @@
     }
   };
 
-  H.wrap(H.Chart.prototype, 'init', function (proceed) {
-    // console.log("============ Highcharts init ============");
-    var series = arguments[1].series;
-    var extraSeries = [];
-    var i = 0;
+  H.wrap(H.Chart.prototype, 'update', function (proceed) {
+    // console.log("============ Highcharts update ============");
+    const regressionSeries = this.series.filter(s => s.options.isRegressionLine);
+    const series = this.series.filter(s => !s.options.isRegressionLine);
+    const extraSeries = [];
+    let i = 0;
     if (series) {
-        for (i = 0; i < series.length; i++) {
-            var s = series[i];
-            if (s.regression) {
-                var extraSerie = processSerie(s, 'init', this);
-                extraSeries.push(extraSerie);
-                arguments[1].series[i].rendered = false;
-            }
+      for (i = 0; i < series.length; i++) {
+        const s = series[i];
+        if (s.options.regression) {
+          var extraSerie = processSerie(s.options, 'init', this);
+          extraSeries.push(extraSerie);
         }
+      }
     }
-
-    if (extraSerie) {
-        
-        arguments[1].series = series.concat(extraSeries);
+    if (extraSeries.length) {
+      extraSeries.forEach(regressionSerie => {
+        const realRegSer = regressionSeries.find(rs => rs.options.id === regressionSerie.id)
+        if (realRegSer) {
+          realRegSer.update(regressionSerie)
+        } else {
+          this.addSeries(regressionSerie)
+        }
+        arguments[1].series = (arguments[1].series || []).concat(extraSeries)
+      })
     }
-
-    proceed.apply(this, Array.prototype.slice.call(arguments, 1));
-    
-  });
-
-  H.wrap(H.Chart.prototype, 'addSeries', function (proceed) {
-  //  console.log("============ Highcharts addSeries ============");
-    var s = arguments[1];
-    var extraSerie = processSerie(s, 'addSeries', this);
-    arguments[1].rendered = true;
-    if (extraSerie) {
-        this.addSeries(extraSerie);
-    }
-    return proceed.apply(this, Array.prototype.slice.call(arguments, 1));
+    proceed.apply(this, Array.prototype.slice.call(arguments, 1));  
   });
 
   H.wrap(H.Series.prototype, "setData", function(proceed) {
     // console.log("============ Highcharts setData series ============");
-    if (this.options.regressionOutputs) {
+    if (this.options.isRegressionLine) {
       const regLineId = this.options.id
-      const parentSerie = this.chart.series.find(serie => serie.options.regressionSettings && serie.options.regressionSettings.id === regLineId)
-      const regressionSerie = processSerie(parentSerie.options, 'none', this);
-      arguments[1] = regressionSerie.data
+      const regSerie = this.chart.series.find(serie => serie.options.regressionSettings && serie.options.regressionSettings.id === regLineId)
+      const extraSerie = processSerie(regSerie.options, 'none', this);
+      arguments[1] = extraSerie.data
     }
     return proceed.apply(this, Array.prototype.slice.call(arguments, 1));
   });
