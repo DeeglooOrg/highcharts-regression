@@ -174,8 +174,8 @@
         } else {
           this.addSeries(regressionSerie)
         }
-        arguments[1].series = (arguments[1].series || []).concat(extraSeries)
       })
+      arguments[1].series = (arguments[1].series || []).concat(extraSeries)
     }
     proceed.apply(this, Array.prototype.slice.call(arguments, 1));  
   });
