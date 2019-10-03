@@ -161,7 +161,8 @@
       for (i = 0; i < series.length; i++) {
         const s = series[i];
         if (s.options.regression) {
-          var extraSerie = processSerie(s.options, 'init', this);
+          const serOptions = (arguments[1].series || []).find(x => x.id === s.options.id) || s.options
+          var extraSerie = processSerie(serOptions, 'init', this);
           extraSeries.push(extraSerie);
         }
       }
