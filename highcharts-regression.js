@@ -32,7 +32,7 @@
       var regression;
       var extraSerie = {
         data: [],
-        color: s.regressionSettings.color || "",
+        color: s.regressionSettings.color || (s.color + "66") || "",
         yAxis: s.yAxis,
         lineWidth: s.regressionSettings.lineWidth || 2,
         marker: {
