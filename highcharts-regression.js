@@ -55,7 +55,7 @@
         name: s.regressionSettings.name || "No name",
         id: s.regressionSettings.id,
         dashStyle: s.regressionSettings.dashStyle || "solid",
-        showInLegend: !s.regressionSettings.hideInLegend,
+        showInLegend: false, //!s.regressionSettings.hideInLegend,
         tooltip: s.regressionSettings.tooltip
       };
 
