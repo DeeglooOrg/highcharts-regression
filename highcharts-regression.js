@@ -28,7 +28,7 @@
       s.regressionSettings.useAllSeries =
         s.regressionSettings.useAllSeries || false;
 
-      var regressionType = s.regressionSettings.type || "linear";
+      var regressionType = s.regressionSettings.type || "polynomial";
       var regression;
       var extraSerie = {
         data: [],
