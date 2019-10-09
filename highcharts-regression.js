@@ -434,7 +434,7 @@
    */
   function _polynomial(data, order, extrapolate) {
     const copiedData = JSON.parse(JSON.stringify(data));
-    let lastItem = 0;
+    let lastItem = copiedData.find(item => !!item.y).y || 0;
     copiedData.forEach(item => !item.y ? (item.y = lastItem) : (lastItem = item.y))
     if (typeof order == "undefined") {
       order = 2;
