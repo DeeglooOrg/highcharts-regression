@@ -52,7 +52,7 @@
         isRegressionLine: true,
         visible: s.regressionSettings.visible,
         type: s.regressionSettings.linetype || "spline",
-        name: s.regressionSettings.name || "No name",
+        name: s.regressionSettings.name || `${s.name} Trendline`,
         id: s.regressionSettings.id,
         dashStyle: s.regressionSettings.dashStyle || "solid",
         showInLegend: false, //!s.regressionSettings.hideInLegend,
