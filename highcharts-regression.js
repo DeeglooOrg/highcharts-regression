@@ -433,21 +433,24 @@
    * Code extracted from https://github.com/Tom-Alexander/regression-js/
    */
   function _polynomial(data, order, extrapolate) {
+    const copiedData = JSON.parse(JSON.stringify(data));
+    let lastItem = 0;
+    copiedData.forEach(item => !item.y ? (item.y = lastItem) : (lastItem = item.y))
     if (typeof order == "undefined") {
       order = 2;
     } else if (order < 0) {
       return {
         equation: [],
-        points: data,
+        points: copiedData,
         string: "Error! Polynomial order smaller than 0!"
       };
     }
 
-    if (data.length == 1) {
+    if (copiedData.length == 1) {
       return {
-        equation: [data[0].y],
-        points: data,
-        string: data[0].y.toString()
+        equation: [copiedData[0].y],
+        points: copiedData,
+        string: copiedData[0].y.toString()
       };
     }
 
@@ -455,19 +458,19 @@
 
     //Normalize input data
     const SCALING_RANGE = 10;
-    var max = data.reduce(
+    var max = copiedData.reduce(
       (max, point) => (point.x > max ? point.x : max),
-      data[0].x
+      copiedData[0].x
     );
-    var min = data.reduce(
+    var min = copiedData.reduce(
       (min, point) => (point.x < min ? point.x : min),
-      data[0].x
+      copiedData[0].x
     );
     var ratio = SCALING_RANGE / (max - min);
 
-    for (var i = 0; i < data.length; i++) {
-      xAxisCopy.push(data[i].x);
-      data[i].x = (data[i].x - min) * ratio;
+    for (var i = 0; i < copiedData.length; i++) {
+      xAxisCopy.push(copiedData[i].x);
+      copiedData[i].x = (copiedData[i].x - min) * ratio;
     }
 
     var lhs = [],
@@ -479,9 +482,9 @@
       k = order + 1;
 
     for (; i < k; i++) {
-      for (var l = 0, len = data.length; l < len; l++) {
-        if (data[l].x != null && data[l].y != null) {
-          a += Math.pow(data[l].x, i) * data[l].y;
+      for (var l = 0, len = copiedData.length; l < len; l++) {
+        if (copiedData[l].x != null && copiedData[l].y != null) {
+          a += Math.pow(copiedData[l].x, i) * copiedData[l].y;
         }
       }
 
@@ -489,9 +492,9 @@
       a = 0;
       var c = [];
       for (var j = 0; j < k; j++) {
-        for (var l = 0, len = data.length; l < len; l++) {
-          if (data[l].y) {
-            b += Math.pow(data[l].x, i + j);
+        for (var l = 0, len = copiedData.length; l < len; l++) {
+          if (copiedData[l].y) {
+            b += Math.pow(copiedData[l].x, i + j);
           }
         }
         c.push(b);
@@ -503,15 +506,15 @@
 
     var equation = gaussianElimination(rhs, k);
 
-    var resultLength = data.length + extrapolate;
-    var step = data[data.length - 1].x - data[data.length - 2].x;
+    var resultLength = copiedData.length + extrapolate;
+    var step = copiedData[copiedData.length - 1].x - copiedData[copiedData.length - 2].x;
     for (var i = 0, len = resultLength; i < len; i++) {
       var answer = 0;
       var x = 0;
-      if (typeof data[i] !== "undefined") {
-        x = data[i].x;
+      if (typeof copiedData[i] !== "undefined") {
+        x = copiedData[i].x;
       } else {
-        x = data[data.length - 1].x + (i - data.length) * step;
+        x = copiedData[copiedData.length - 1].x + (i - copiedData.length) * step;
       }
 
       for (var w = 0; w < equation.length; w++) {
@@ -533,7 +536,7 @@
     //return the old x-axis values back
     for (var i = 0; i < results.length; i++) {
       results[i][0] = xAxisCopy[i];
-      data[i].x = xAxisCopy[i];
+      copiedData[i].x = xAxisCopy[i];
     }
 
     results.sort(function(a, b) {
