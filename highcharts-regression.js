@@ -163,6 +163,8 @@
         if (s.options.regression) {
           const serOptions = (arguments[1].series || []).find(x => x.id === s.options.id) || s.options
           var extraSerie = processSerie(serOptions, 'init', this);
+          extraSerie.mdd = serOptions.mdd
+          extraSerie.mddFromData = serOptions.mddFromData
           extraSeries.push(extraSerie);
         }
       }
