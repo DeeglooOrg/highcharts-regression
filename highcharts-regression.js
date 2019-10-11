@@ -164,6 +164,7 @@
           const serOptions = (arguments[1].series || []).find(x => x.id === s.options.id) || s.options
           var extraSerie = processSerie(serOptions, 'init', this);
           extraSerie.mdd = serOptions.mdd
+          extraSerie.mdd.label = serOptions.mdd.label && serOptions.mdd.label + " Trendline"
           extraSerie.mddFromData = serOptions.mddFromData
           extraSeries.push(extraSerie);
         }
@@ -180,7 +181,7 @@
       })
       arguments[1].series = (arguments[1].series || []).concat(extraSeries)
     }
-    proceed.apply(this, Array.prototype.slice.call(arguments, 1));  
+    proceed.apply(this, Array.prototype.slice.call(arguments, 1));
   });
 
   H.wrap(H.Series.prototype, "setData", function(proceed) {
