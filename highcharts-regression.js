@@ -163,9 +163,9 @@
         if (s.options.regression) {
           const serOptions = (arguments[1].series || []).find(x => x.id === s.options.id) || s.options
           var extraSerie = processSerie(serOptions, 'init', this);
-          extraSerie.mdd = serOptions.mdd
+          extraSerie.mdd = JSON.parse(JSON.stringify(serOptions.mdd))
           extraSerie.mdd.label = serOptions.mdd.label && serOptions.mdd.label + " Trendline"
-          extraSerie.mddFromData = serOptions.mddFromData
+          extraSerie.mddFromData = serOptions.mddFromData && JSON.parse(JSON.stringify(serOptions.mddFromData))
           extraSeries.push(extraSerie);
         }
       }
