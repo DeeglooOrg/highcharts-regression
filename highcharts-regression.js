@@ -167,8 +167,9 @@
         if (s.options.regression) {
           const serOptions = (arguments[1].series || []).find(x => x.id === s.options.id) || s.options
           var extraSerie = processSerie(serOptions, 'init', this);
-          extraSerie.mdd = serOptions.mdd
-          extraSerie.mddFromData = serOptions.mddFromData
+          extraSerie.mdd = JSON.parse(JSON.stringify(serOptions.mdd))
+          extraSerie.mdd.label = serOptions.mdd.label && serOptions.mdd.label + " Trendline"
+          extraSerie.mddFromData = serOptions.mddFromData && JSON.parse(JSON.stringify(serOptions.mddFromData))
           extraSeries.push(extraSerie);
         }
       }
@@ -184,7 +185,7 @@
       })
       arguments[1].series = (arguments[1].series || []).concat(extraSeries)
     }
-    proceed.apply(this, Array.prototype.slice.call(arguments, 1));  
+    proceed.apply(this, Array.prototype.slice.call(arguments, 1));
   });
 
   H.wrap(H.Series.prototype, "setData", function(proceed) {
@@ -193,11 +194,26 @@
       const regLineId = this.options.id
       const regSerie = this.chart.series.find(serie => serie.options.regressionSettings && serie.options.regressionSettings.id === regLineId)
       const extraSerie = processSerie(regSerie.options, 'none', this);
-      arguments[1] = extraSerie.data
+      const newData = extraSerie.data.map((e, i) => {
+        return [e[0], e[1], regSerie.options.data && regSerie.options.data[i].date];
+      });
+      arguments[1] = newData;
     }
     return proceed.apply(this, Array.prototype.slice.call(arguments, 1));
   });
 
+  H.wrap(H.Series.prototype, "drawGraph", function(proceed) {
+    // console.log("============ Highcharts drawGraph series ============");
+    if (this.options.isRegressionLine) {
+      const dates = this.options.data.map(d => d[2])
+      this.data = this.data.map((d,i) => {
+        d.date = dates[i];
+        return d;
+      })
+    }
+    return proceed.apply(this, Array.prototype.slice.call(arguments, 1));
+  });
+  
   /**
    * Code extracted from https://github.com/Tom-Alexander/regression-js/
    */
