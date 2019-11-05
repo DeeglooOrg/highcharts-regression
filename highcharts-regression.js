@@ -60,6 +60,7 @@
       };
 
       extraSerie.dataLabels = s.regressionSettings.dataLabels || {}
+      extraSerie.dataLabels.formatter = extraSerie.dataLabels.formatter || s.dataLabels.formatter
       extraSerie.dataLabels.color = extraSerie.color
       extraSerie.dataLabels.borderColor = extraSerie.borderColor || extraSerie.color
 
