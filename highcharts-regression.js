@@ -59,6 +59,10 @@
         tooltip: s.regressionSettings.tooltip
       };
 
+      extraSerie.dataLabels = s.regressionSettings.dataLabels || {}
+      extraSerie.dataLabels.color = extraSerie.color
+      extraSerie.dataLabels.borderColor = extraSerie.borderColor || extraSerie.color
+
       if (typeof s.regressionSettings.index !== "undefined") {
         extraSerie.index = s.regressionSettings.index;
       }
