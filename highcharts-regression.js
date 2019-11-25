@@ -30,6 +30,7 @@
 
       var regressionType = s.regressionSettings.type || "polynomial";
       var regression;
+
       var extraSerie = {
         data: [],
         color: s.regressionSettings.color || (s.color + "66") || "",
@@ -152,6 +153,7 @@
         extraSerie.visible = false;
       }
       extraSerie.regressionOutputs = regression;
+
       return extraSerie;
     }
   };
@@ -168,6 +170,7 @@
         if (s.options.regression) {
           const serOptions = (arguments[1].series || []).find(x => x.id === s.options.id) || s.options
           var extraSerie = processSerie(serOptions, 'init', this);
+          if (!extraSerie) continue
           extraSerie.mdd = JSON.parse(JSON.stringify(serOptions.mdd))
           extraSerie.mdd.label = serOptions.mdd.label && serOptions.mdd.label + " Trendline"
           extraSerie.mddFromData = serOptions.mddFromData && JSON.parse(JSON.stringify(serOptions.mddFromData))
