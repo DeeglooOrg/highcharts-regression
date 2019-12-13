@@ -560,10 +560,11 @@
       else string += Math.round(equation[i] * 100) / 100;
     }
 
-    //return the old x-axis values back
+    // return the old x-axis values back and round y to 2 decimal places
     for (var i = 0; i < results.length; i++) {
       results[i][0] = xAxisCopy[i];
       copiedData[i].x = xAxisCopy[i];
+      results[i][1] = results[i][1] && Math.round(results[i][1] * 100) / 100;
     }
 
     results.sort(function(a, b) {
