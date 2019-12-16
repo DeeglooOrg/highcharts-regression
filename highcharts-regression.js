@@ -459,6 +459,14 @@
    * Code extracted from https://github.com/Tom-Alexander/regression-js/
    */
   function _polynomial(data, order, extrapolate) {
+    if (data.length == 1) {
+      return {
+        equation: [data[0].y],
+        points: [[data[0].x, data[0].y]],
+        string: 'y = ' + (data[0].y && data[0].y.toString() || 'NaN')
+      };
+    }
+
     const copiedData = JSON.parse(JSON.stringify(data));
     let firstNonNaNItem = copiedData.find(item => !!item.y);
     let lastYValue = firstNonNaNItem && firstNonNaNItem.y || 0;
@@ -470,14 +478,6 @@
         equation: [],
         points: copiedData,
         string: "Error! Polynomial order smaller than 0!"
-      };
-    }
-
-    if (copiedData.length == 1) {
-      return {
-        equation: [copiedData[0].y],
-        points: copiedData,
-        string: copiedData[0].y.toString()
       };
     }
 
