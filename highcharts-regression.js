@@ -171,9 +171,8 @@
           const serOptions = (arguments[1].series || []).find(x => x.id === s.options.id) || s.options
           var extraSerie = processSerie(serOptions, 'init', this);
           if (!extraSerie) continue
-          extraSerie.mdd = JSON.parse(JSON.stringify(serOptions.mdd))
+          extraSerie.mdd = Object.assign({}, serOptions.mdd)
           extraSerie.mdd.label = serOptions.mdd.label && serOptions.mdd.label + " Trendline"
-          extraSerie.mddFromData = serOptions.mddFromData && JSON.parse(JSON.stringify(serOptions.mddFromData))
           extraSeries.push(extraSerie);
         }
       }
